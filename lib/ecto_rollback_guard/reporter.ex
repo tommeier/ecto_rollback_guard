@@ -8,7 +8,7 @@ defmodule EctoRollbackGuard.Reporter do
 
   def format_terminal(impacts) do
     header = "Rollback Impact Preview\n=======================\n"
-    body = impacts |> Enum.map(&format_impact/1) |> Enum.join("\n")
+    body = Enum.map_join(impacts, "\n", &format_impact/1)
     summary = format_summary(impacts)
     header <> "\n" <> body <> "\n\n" <> summary
   end
@@ -25,7 +25,7 @@ defmodule EctoRollbackGuard.Reporter do
   defp format_impact(%Impact{} = impact) do
     tag = if impact.destructive?, do: "[destructive]", else: "[safe]"
     header = "#{tag} #{impact.version}_#{impact.name}"
-    ops = impact.operations |> Enum.map(&("  " <> format_op(&1))) |> Enum.join("\n")
+    ops = Enum.map_join(impact.operations, "\n", &("  " <> format_op(&1)))
     header <> "\n" <> ops
   end
 

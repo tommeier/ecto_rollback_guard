@@ -1,8 +1,7 @@
 defmodule EctoRollbackGuard.PreviewTest do
   use ExUnit.Case
 
-  alias EctoRollbackGuard.Preview
-  alias EctoRollbackGuard.TestRepo
+  alias EctoRollbackGuard.{Preview, TestRepo}
 
   setup do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(TestRepo)
@@ -14,7 +13,7 @@ defmodule EctoRollbackGuard.PreviewTest do
       # The test repo has migration 20260101000000_create_test_table
       # Rolling back to 0 should detect it as a create table (drop on rollback)
       {:ok, impacts} = Preview.preview(TestRepo, 0)
-      assert length(impacts) >= 1
+      assert impacts != []
 
       impact = Enum.find(impacts, &(&1.name =~ "create_test_table"))
       assert impact != nil

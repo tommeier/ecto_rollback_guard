@@ -1,8 +1,7 @@
 defmodule EctoRollbackGuard.EnricherTest do
   use ExUnit.Case
 
-  alias EctoRollbackGuard.Enricher
-  alias EctoRollbackGuard.TestRepo
+  alias EctoRollbackGuard.{Enricher, TestRepo}
 
   setup do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(TestRepo)

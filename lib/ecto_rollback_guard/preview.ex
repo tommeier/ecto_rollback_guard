@@ -34,17 +34,7 @@ defmodule EctoRollbackGuard.Preview do
       Enum.map(migrations_to_revert, fn {_status, version, name} ->
         source_path = find_migration_file(migrations_path, version)
 
-        ops =
-          case source_path && File.read(source_path) do
-            {:ok, source} ->
-              case Detector.detect(source) do
-                {:error, _} -> []
-                ops -> ops
-              end
-
-            _ ->
-              []
-          end
+        ops = detect_from_file(source_path)
 
         ops = if enrich?, do: Enricher.enrich(ops, repo), else: ops
         Impact.from_operations(version, name, ops, source_path: source_path)
@@ -65,6 +55,21 @@ defmodule EctoRollbackGuard.Preview do
     _ ->
       repo_name = repo |> Module.split() |> List.last() |> Macro.underscore()
       Path.join(["priv", repo_name, "migrations"])
+  end
+
+  defp detect_from_file(nil), do: []
+
+  defp detect_from_file(path) do
+    case File.read(path) do
+      {:ok, source} ->
+        case Detector.detect(source) do
+          {:error, _} -> []
+          ops -> ops
+        end
+
+      _ ->
+        []
+    end
   end
 
   defp find_migration_file(migrations_path, version) do
