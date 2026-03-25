@@ -76,7 +76,7 @@ Add to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ecto_rollback_guard, "~> 0.1"}
+    {:ecto_rollback_guard, "~> 0.2"}
   ]
 end
 ```
@@ -197,6 +197,28 @@ Row count enrichment queries `pg_class.reltuples` for speed, with a bounded
 - Row count enrichment is PostgreSQL-only (MySQL/SQLite planned for future)
 - `execute` with non-string arguments is flagged for review but cannot be
   analyzed
+
+## Contributing
+
+```bash
+# Clone and setup
+git clone https://github.com/tommeier/ecto_rollback_guard.git
+cd ecto_rollback_guard
+
+# Install dependencies
+mix deps.get
+
+# Create test database (requires PostgreSQL running)
+mix ecto.create
+
+# Run the full suite
+mix test              # 112 tests
+mix credo --strict    # static analysis
+mix format --check-formatted
+mix dialyzer          # type checking (slow on first run)
+```
+
+PRs welcome. Please include tests for new detection patterns.
 
 ## License
 
