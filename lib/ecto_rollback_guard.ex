@@ -21,7 +21,7 @@ defmodule EctoRollbackGuard do
   ### Programmatic
 
       EctoRollbackGuard.detect(source)
-      #=> [{:drop_table, :users}, {:drop_column, :entities, :mobile_number}]
+      #=> [{:drop_table, :users}, {:drop_column, :accounts, :name}]
 
       EctoRollbackGuard.preview(MyApp.Repo, 20230101120000)
       #=> {:ok, [%EctoRollbackGuard.Impact{...}]}

@@ -3,11 +3,11 @@ defmodule EctoRollbackGuard.ReporterTest do
 
   alias EctoRollbackGuard.{Impact, Reporter}
 
-  @destructive Impact.from_operations(20_260_318, "create_email_signups", [
-                 {:drop_table, :email_signups, 1847}
+  @destructive Impact.from_operations(20_240_915, "create_orders", [
+                 {:drop_table, :orders, 1847}
                ])
 
-  @safe Impact.from_operations(20_260_315, "add_email_index", [
+  @safe Impact.from_operations(20_240_910, "add_email_index", [
           {:drop_index, :users, [:email]}
         ])
 
@@ -17,7 +17,7 @@ defmodule EctoRollbackGuard.ReporterTest do
     test "formats destructive impact with row count" do
       output = Reporter.format_terminal([@destructive])
       assert output =~ "destructive"
-      assert output =~ "create_email_signups"
+      assert output =~ "create_orders"
       assert output =~ "1,847"
       assert output =~ "DROP TABLE"
     end

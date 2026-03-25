@@ -37,8 +37,8 @@ Log a full impact report with row counts before executing the rollback. This
 gives operators visibility in production logs:
 
 ```
-🔴 20260318_create_email_signups — DROP TABLE email_signups (~1,847 rows)
-🟢 20260315_add_email_index — DROP INDEX (safe)
+🔴 20240915_create_orders — DROP TABLE orders (~1,847 rows)
+🟢 20240910_add_users_email_index — DROP INDEX (safe)
 ```
 
 **2. At deploy time — in CI/CD**
@@ -91,10 +91,10 @@ $ mix ecto_rollback_guard.preview --to 20230101120000
 Rollback Impact Preview
 =======================
 
-[destructive] 20260318_create_email_signups
-  DROP TABLE email_signups (~1,847 rows)
+[destructive] 20240915_create_orders
+  DROP TABLE orders (~1,847 rows)
 
-[safe] 20260315_add_email_index
+[safe] 20240910_add_users_email_index
   DROP INDEX on users(email) (safe)
 
 1 destructive operation(s). ~1,847 rows at risk.
@@ -131,7 +131,7 @@ end
 ```elixir
 # Detect from source text (pure function, no DB needed)
 EctoRollbackGuard.detect(source)
-#=> [{:drop_table, :users}, {:drop_column, :entities, :mobile_number}]
+#=> [{:drop_table, :users}, {:drop_column, :accounts, :name}]
 
 # Check if any operations are destructive
 EctoRollbackGuard.destructive?(operations)
@@ -139,7 +139,7 @@ EctoRollbackGuard.destructive?(operations)
 
 # Enrich with approximate row counts
 EctoRollbackGuard.enrich(operations, MyApp.Repo)
-#=> [{:drop_table, :users, 1847}, {:drop_column, :entities, :mobile_number}]
+#=> [{:drop_table, :users, 1847}, {:drop_column, :accounts, :name}]
 
 # Full preview — discovers migrations, detects, enriches
 {:ok, impacts} = EctoRollbackGuard.preview(MyApp.Repo, 20230101120000)
