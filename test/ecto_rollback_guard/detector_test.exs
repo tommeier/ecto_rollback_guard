@@ -328,6 +328,99 @@ defmodule EctoRollbackGuard.DetectorTest do
 
   @malformed "defmodule Broken do {"
 
+  # === change/0 — case/cond branches ===
+
+  @change_case ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def change do
+      case repo_type() do
+        :pg -> create table(:pg_data) do
+          add :id, :binary_id, primary_key: true
+        end
+        :mysql -> create table(:mysql_data) do
+          add :id, :binary_id, primary_key: true
+        end
+      end
+    end
+  end
+  """
+
+  @change_cond ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def change do
+      cond do
+        true -> create table(:cond_table) do
+          add :name, :string
+        end
+      end
+    end
+  end
+  """
+
+  # === change/0 — mixed alter ===
+
+  @change_alter_mixed ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def change do
+      alter table(:accounts) do
+        add :phone, :string
+        remove :legacy
+        modify :balance, :decimal
+      end
+    end
+  end
+  """
+
+  # === change/0 — string table name ===
+
+  @change_string_table ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def change do
+      create table("string_users") do
+        add :name, :string
+      end
+    end
+  end
+  """
+
+  # === down/0 — nil body ===
+
+  @down_nil_body ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def up, do: execute("CREATE VIEW foo AS SELECT 1")
+    def down, do: nil
+  end
+  """
+
+  # === down/0 — execute + recognized ops ===
+
+  @down_execute_and_drop ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def up, do: :ok
+    def down do
+      drop table(:orders)
+      execute "UPDATE counters SET value = 0"
+    end
+  end
+  """
+
+  # === Schema-qualified DROP TABLE ===
+
+  @change_execute_schema_qualified ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def change do
+      execute("CREATE TABLE public.archive", "DROP TABLE public.archive")
+    end
+  end
+  """
+
   # === Tests ===
 
   describe "change/0 — create table" do
@@ -477,6 +570,56 @@ defmodule EctoRollbackGuard.DetectorTest do
 
     test "malformed source returns error" do
       assert {:error, _} = Detector.detect(@malformed)
+    end
+
+    test "non-module top-level AST returns empty" do
+      assert [] = Detector.detect("defp helper, do: :ok")
+    end
+  end
+
+  describe "change/0 — case/cond branches" do
+    test "case branches detect tables from all arms" do
+      ops = Detector.detect(@change_case)
+      tables = for {:drop_table, t} <- ops, do: t
+      assert :pg_data in tables
+      assert :mysql_data in tables
+    end
+
+    test "cond branches detect tables" do
+      assert [{:drop_table, :cond_table}] = Detector.detect(@change_cond)
+    end
+  end
+
+  describe "change/0 — mixed alter" do
+    test "detects add, non-reversible remove, and non-reversible modify" do
+      ops = Detector.detect(@change_alter_mixed)
+      assert {:drop_column, :accounts, :phone} in ops
+      assert {:non_reversible_remove, :accounts, :legacy} in ops
+      assert {:non_reversible_modify, :accounts, :balance} in ops
+    end
+  end
+
+  describe "change/0 — string table name" do
+    test "string table name returns unresolved" do
+      ops = Detector.detect(@change_string_table)
+      assert [{:drop_table, {:unresolved, _}}] = ops
+    end
+  end
+
+  describe "change/0 — schema-qualified SQL" do
+    test "captures schema.table from DROP TABLE" do
+      assert [{:drop_table, "public.archive"}] = Detector.detect(@change_execute_schema_qualified)
+    end
+  end
+
+  describe "down/0 — additional" do
+    test "nil body is irreversible" do
+      assert [{:irreversible}] = Detector.detect(@down_nil_body)
+    end
+
+    test "execute + recognized drop returns the drop op (not raw_sql)" do
+      ops = Detector.detect(@down_execute_and_drop)
+      assert [{:drop_table, :orders}] = ops
     end
   end
 end

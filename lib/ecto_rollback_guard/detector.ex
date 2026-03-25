@@ -16,8 +16,8 @@ defmodule EctoRollbackGuard.Detector do
         {down_body, change_body} = extract_function_bodies(ast)
 
         cond do
-          down_body != nil -> detect_down_ops(down_body)
-          change_body != nil -> detect_change_ops(change_body)
+          down_body != :not_found -> detect_down_ops(down_body)
+          change_body != :not_found -> detect_change_ops(change_body)
           true -> []
         end
 
@@ -32,12 +32,12 @@ defmodule EctoRollbackGuard.Detector do
     case ast do
       {:defmodule, _, [_, [do: {:__block__, _, body}]]} -> find_functions(body)
       {:defmodule, _, [_, [do: body]]} -> find_functions(List.wrap(body))
-      _ -> {nil, nil}
+      _ -> {:not_found, :not_found}
     end
   end
 
   defp find_functions(body_list) do
-    Enum.reduce(body_list, {nil, nil}, fn
+    Enum.reduce(body_list, {:not_found, :not_found}, fn
       {:def, _, [{:down, _, _}, [do: body]]}, {_down, change} -> {body, change}
       {:def, _, [{:change, _, _}, [do: body]]}, {down, _change} -> {down, body}
       _, acc -> acc
@@ -192,7 +192,7 @@ defmodule EctoRollbackGuard.Detector do
   defp normalize_body(statement), do: [statement]
 
   defp extract_drops_from_sql(sql) when is_binary(sql) do
-    ~r/DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(\w+)/i
+    ~r/DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?([\w.]+)/i
     |> Regex.scan(sql)
     |> Enum.map(fn [_, table] -> {:drop_table, table} end)
   end

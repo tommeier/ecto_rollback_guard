@@ -20,7 +20,8 @@ defmodule EctoRollbackGuard.ImpactTest do
           {:raw_sql},
           {:non_reversible_execute},
           {:non_reversible_remove, :users, :email},
-          {:non_reversible_modify, :users, :amount}
+          {:non_reversible_modify, :users, :amount},
+          {:raw_macro, :my_macro}
         ] do
       impact = Impact.from_operations(1, "test", [op])
       assert impact.destructive?, "Expected #{inspect(op)} to be destructive"
@@ -41,5 +42,26 @@ defmodule EctoRollbackGuard.ImpactTest do
   test "from_operations sets source_path from opts" do
     impact = Impact.from_operations(1, "test", [], source_path: "/path/to/migration.exs")
     assert impact.source_path == "/path/to/migration.exs"
+  end
+
+  test "drop_table with unresolved name is destructive" do
+    impact = Impact.from_operations(1, "test", [{:drop_table, {:unresolved, "@table_name"}}])
+    assert impact.destructive?
+  end
+
+  test "empty operations is not destructive" do
+    impact = Impact.from_operations(1, "test", [])
+    refute impact.destructive?
+  end
+
+  test "mixed destructive and safe ops is destructive" do
+    ops = [{:drop_index, :users, [:email]}, {:drop_table, :users}]
+    impact = Impact.from_operations(1, "test", ops)
+    assert impact.destructive?
+  end
+
+  test "drop_table with enriched count is destructive" do
+    impact = Impact.from_operations(1, "test", [{:drop_table, :users, 50_000}])
+    assert impact.destructive?
   end
 end

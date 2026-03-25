@@ -41,6 +41,8 @@ defmodule EctoRollbackGuard.Preview do
       end)
 
     {:ok, impacts}
+  rescue
+    e -> {:error, Exception.message(e)}
   end
 
   defp default_migrations_path(repo) do

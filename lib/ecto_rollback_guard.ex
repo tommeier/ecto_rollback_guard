@@ -77,10 +77,19 @@ defmodule EctoRollbackGuard do
 
   Designed for use in Release modules before executing a rollback.
   """
-  @spec log_preview(Ecto.Repo.t(), non_neg_integer(), keyword()) :: :ok
+  @spec log_preview(Ecto.Repo.t(), non_neg_integer(), keyword()) :: :ok | {:error, term()}
   def log_preview(repo, target_version, opts \\ []) do
-    {:ok, impacts} = preview(repo, target_version, opts)
+    result = preview(repo, target_version, opts)
+    do_log_preview(result)
+  end
+
+  defp do_log_preview({:ok, impacts}) do
     IO.puts(Reporter.format_terminal(impacts))
     :ok
+  end
+
+  defp do_log_preview({:error, reason}) do
+    IO.puts("Rollback preview failed: #{inspect(reason)}")
+    {:error, reason}
   end
 end

@@ -1,10 +1,11 @@
 defmodule EctoRollbackGuard.EnricherTest do
   use ExUnit.Case
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias EctoRollbackGuard.{Enricher, TestRepo}
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(TestRepo)
+    :ok = Sandbox.checkout(TestRepo)
     :ok
   end
 
@@ -47,6 +48,21 @@ defmodule EctoRollbackGuard.EnricherTest do
     test "passes through non-drop_table operations unchanged" do
       ops = [{:irreversible}, {:raw_sql}, {:non_reversible_execute}]
       assert ^ops = Enricher.enrich(ops, TestRepo)
+    end
+
+    test "enriches string (binary) table names" do
+      TestRepo.query!("INSERT INTO enricher_test_rows (data) VALUES ('str')")
+      ops = [{:drop_table, "enricher_test_rows"}]
+      assert [{:drop_table, "enricher_test_rows", count}] = Enricher.enrich(ops, TestRepo)
+      assert count >= 1
+    end
+
+    test "enriches mixed atom and string table names" do
+      ops = [{:drop_table, :enricher_test_rows}, {:drop_table, "enricher_test_rows"}]
+      enriched = Enricher.enrich(ops, TestRepo)
+
+      assert [{:drop_table, :enricher_test_rows, _}, {:drop_table, "enricher_test_rows", _}] =
+               enriched
     end
   end
 end
