@@ -55,7 +55,10 @@ defmodule EctoRollbackGuard.Preview do
 
   defp default_migrations_path(repo) do
     repo_config = repo.config()
-    priv = repo_config[:priv] || "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}"
+
+    priv =
+      repo_config[:priv] || "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}"
+
     otp_app = repo_config[:otp_app]
     Application.app_dir(otp_app, Path.join(priv, "migrations"))
   rescue

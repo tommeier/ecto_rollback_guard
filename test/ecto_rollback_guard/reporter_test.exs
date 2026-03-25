@@ -3,11 +3,11 @@ defmodule EctoRollbackGuard.ReporterTest do
 
   alias EctoRollbackGuard.{Impact, Reporter}
 
-  @destructive Impact.from_operations(20260318, "create_email_signups", [
+  @destructive Impact.from_operations(20_260_318, "create_email_signups", [
                  {:drop_table, :email_signups, 1847}
                ])
 
-  @safe Impact.from_operations(20260315, "add_email_index", [
+  @safe Impact.from_operations(20_260_315, "add_email_index", [
           {:drop_index, :users, [:email]}
         ])
 

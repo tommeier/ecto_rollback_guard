@@ -39,7 +39,9 @@ defmodule EctoRollbackGuard.EnricherTest do
       ops = [{:drop_table, :enricher_test_rows}, {:drop_column, :users, :email}]
       enriched = Enricher.enrich(ops, TestRepo)
 
-      assert [{:drop_table, :enricher_test_rows, count}, {:drop_column, :users, :email}] = enriched
+      assert [{:drop_table, :enricher_test_rows, count}, {:drop_column, :users, :email}] =
+               enriched
+
       assert count >= 1
     end
 

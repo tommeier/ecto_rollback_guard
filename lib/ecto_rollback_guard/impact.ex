@@ -27,9 +27,14 @@ defmodule EctoRollbackGuard.Impact do
   defstruct [:version, :name, :source_path, operations: [], destructive?: false]
 
   @destructive_types [
-    :drop_table, :drop_column, :irreversible, :raw_sql,
-    :non_reversible_execute, :non_reversible_remove,
-    :non_reversible_modify, :raw_macro
+    :drop_table,
+    :drop_column,
+    :irreversible,
+    :raw_sql,
+    :non_reversible_execute,
+    :non_reversible_remove,
+    :non_reversible_modify,
+    :raw_macro
   ]
 
   @spec from_operations(non_neg_integer(), String.t(), [operation()], keyword()) :: t()

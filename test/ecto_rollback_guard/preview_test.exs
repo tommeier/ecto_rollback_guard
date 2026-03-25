@@ -19,11 +19,12 @@ defmodule EctoRollbackGuard.PreviewTest do
       impact = Enum.find(impacts, &(&1.name =~ "create_test_table"))
       assert impact != nil
       assert impact.destructive?
+
       assert Enum.any?(impact.operations, fn
-        {:drop_table, _, _} -> true
-        {:drop_table, _} -> true
-        _ -> false
-      end)
+               {:drop_table, _, _} -> true
+               {:drop_table, _} -> true
+               _ -> false
+             end)
     end
 
     test "returns empty list when no migrations to revert" do

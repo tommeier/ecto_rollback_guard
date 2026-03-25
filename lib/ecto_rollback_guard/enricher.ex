@@ -35,7 +35,9 @@ defmodule EctoRollbackGuard.Enricher do
 
   defp approximate_count(repo, table_name) do
     case query_reltuples(repo, table_name) do
-      count when is_integer(count) and count > 0 -> count
+      count when is_integer(count) and count > 0 ->
+        count
+
       _ ->
         repo.query("ANALYZE #{table_name}", [], log: false)
 
