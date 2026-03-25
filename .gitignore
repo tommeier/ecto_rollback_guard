@@ -8,3 +8,9 @@ erl_crash.dump
 ecto_rollback_guard-*.tar
 /tmp/
 .elixir_ls/
+
+CHECKSUM
+VERSION
+contents.tar.gz
+metadata.config
+.claude/
