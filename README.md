@@ -220,6 +220,24 @@ mix dialyzer          # type checking (slow on first run)
 
 PRs welcome. Please include tests for new detection patterns.
 
+## Releasing
+
+1. Update version in `mix.exs`
+2. Update `CHANGELOG.md` with a new `## vX.Y.Z` section
+3. Update the version in the installation section of this README
+4. Commit: `git commit -am "Bump version to X.Y.Z"`
+5. Tag and push:
+   ```bash
+   git tag vX.Y.Z
+   git push origin main --tags
+   ```
+6. GitHub Actions will auto-create a GitHub release from the changelog
+7. Publish to Hex:
+   ```bash
+   mix hex.publish
+   mix hex.publish docs
+   ```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
