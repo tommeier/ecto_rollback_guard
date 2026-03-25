@@ -86,10 +86,38 @@ defmodule EctoRollbackGuard.Reporter do
   defp op_to_map({:drop_table, table, count}),
     do: %{type: "drop_table", table: to_string(table), rows: count}
 
-  defp op_to_map({:drop_table, table}), do: %{type: "drop_table", table: to_string(table)}
+  defp op_to_map({:drop_table, {:unresolved, ref}}),
+    do: %{type: "drop_table", table: ref, unresolved: true}
+
+  defp op_to_map({:drop_table, table}),
+    do: %{type: "drop_table", table: to_string(table)}
 
   defp op_to_map({:drop_column, table, col}),
     do: %{type: "drop_column", table: to_string(table), column: to_string(col)}
+
+  defp op_to_map({:non_reversible_remove, table, col}),
+    do: %{type: "non_reversible_remove", table: to_string(table), column: to_string(col)}
+
+  defp op_to_map({:non_reversible_modify, table, col}),
+    do: %{type: "non_reversible_modify", table: to_string(table), column: to_string(col)}
+
+  defp op_to_map({:type_narrowing_risk, table, col, new_type, from_type}),
+    do: %{
+      type: "type_narrowing_risk",
+      table: to_string(table),
+      column: to_string(col),
+      new_type: to_string(new_type),
+      from_type: to_string(from_type)
+    }
+
+  defp op_to_map({:drop_index, table, cols}),
+    do: %{type: "drop_index", table: to_string(table), columns: Enum.map(cols, &to_string/1)}
+
+  defp op_to_map({:rename, from, to}),
+    do: %{type: "rename", from: to_string(from), to: to_string(to)}
+
+  defp op_to_map({:raw_macro, name}),
+    do: %{type: "raw_macro", name: to_string(name)}
 
   defp op_to_map({type}) when is_atom(type), do: %{type: to_string(type)}
   defp op_to_map(op), do: %{type: "unknown", raw: inspect(op)}

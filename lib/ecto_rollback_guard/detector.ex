@@ -97,6 +97,12 @@ defmodule EctoRollbackGuard.Detector do
     extract_drops_from_sql(down_sql)
   end
 
+  # Two-arg execute where down is not a string literal (function call, variable, etc.)
+  # — cannot analyze statically, flag for review
+  defp detect_change_node({:execute, _, [_, _non_string_down]}) do
+    [{:raw_sql}]
+  end
+
   # Single-arg execute — not auto-reversible
   defp detect_change_node({:execute, _, [_single_arg]}) do
     [{:non_reversible_execute}]

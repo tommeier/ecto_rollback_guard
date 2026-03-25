@@ -94,11 +94,24 @@ defmodule EctoRollbackGuard.DetectorTest do
   end
   """
 
-  @change_execute_heredoc ~S"""
+  @change_execute_heredoc ~S'''
   defmodule M do
     use Ecto.Migration
     def change do
-      execute "CREATE EXTENSION citext", "DROP EXTENSION citext"
+      execute """
+      CREATE EXTENSION IF NOT EXISTS citext
+      """, """
+      DROP EXTENSION IF EXISTS citext
+      """
+    end
+  end
+  '''
+
+  @change_execute_non_string_down ~S"""
+  defmodule M do
+    use Ecto.Migration
+    def change do
+      execute(&up_sql/0, &down_sql/0)
     end
   end
   """
@@ -360,8 +373,12 @@ defmodule EctoRollbackGuard.DetectorTest do
     end
 
     test "heredoc execute detects correctly" do
-      # Two-arg with safe down — no destructive detection
+      # Two-arg heredoc with safe down SQL — no destructive detection
       assert [] = Detector.detect(@change_execute_heredoc)
+    end
+
+    test "two-arg execute with non-string down flags for review" do
+      assert [{:raw_sql}] = Detector.detect(@change_execute_non_string_down)
     end
   end
 

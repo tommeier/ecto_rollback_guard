@@ -1,9 +1,16 @@
 defmodule EctoRollbackGuard.Impact do
-  @moduledoc "Represents the rollback impact of a single migration."
+  @moduledoc """
+  Represents the rollback impact of a single migration.
 
+  An `Impact` struct holds the migration version, name, detected operations,
+  and whether any of those operations are destructive.
+  """
+
+  @typedoc "A detected rollback operation."
   @type operation ::
-          {:drop_table, atom()}
-          | {:drop_table, atom(), non_neg_integer()}
+          {:drop_table, atom() | String.t()}
+          | {:drop_table, atom() | String.t(), non_neg_integer()}
+          | {:drop_table, {:unresolved, String.t()}}
           | {:drop_column, atom(), atom()}
           | {:irreversible}
           | {:raw_sql}
@@ -14,7 +21,6 @@ defmodule EctoRollbackGuard.Impact do
           | {:drop_index, atom(), list()}
           | {:rename, atom(), atom()}
           | {:raw_macro, atom()}
-          | {:drop_table, {:unresolved, String.t()}}
 
   @type t :: %__MODULE__{
           version: non_neg_integer(),
@@ -37,6 +43,15 @@ defmodule EctoRollbackGuard.Impact do
     :raw_macro
   ]
 
+  @doc """
+  Build an Impact struct from a version, name, and list of operations.
+
+  Automatically sets `destructive?` based on the operation types.
+
+  ## Options
+
+  - `:source_path` — path to the migration source file
+  """
   @spec from_operations(non_neg_integer(), String.t(), [operation()], keyword()) :: t()
   def from_operations(version, name, operations, opts \\ []) do
     %__MODULE__{
